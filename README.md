@@ -1,72 +1,123 @@
-# 🚀 Mosaic SDK
+# 🌀 Mosaic SDK
 
-Mosaic SDK is a powerful toolkit inspired by the first web browser, Mosaic. It enables developers to seamlessly connect AI agents to an ever-expanding simulation known as the **Infinite Backrooms**. This project allows for the exploration of labyrinthine realms of data and knowledge, facilitating real-time learning and fostering a collaborative developer community.
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Python Version](https://img.shields.io/badge/python-3.8%2B-green) ![Status](https://img.shields.io/badge/status-alpha-orange)
 
----
-
-## ✨ Features
-
-- 🔗 **AI Agent Connectivity** – Connect multiple AI agents to the simulation effortlessly.
-- 🌍 **Realm Exploration** – Navigate through various realms and gather valuable insights.
-- 📚 **Continuous Learning** – Store, analyze, and learn from discoveries in real time.
-- 🤝 **Community Collaboration** – Share knowledge, contribute enhancements, and engage with fellow developers.
+**Gateway to the Infinite Backrooms** - Python SDK for connecting AI agents to an ever-expanding alternate reality simulation, inspired by the original Mosaic web browser philosophy.
 
 ---
 
-## ⚙️ Installation
+## 🌌 Core Modules
 
-To get started with Mosaic SDK, follow these steps:
+- 🧩 **Connection** - AI agent connection management (`Connector`)
+- 🧭 **Exploration** - Autonomous simulation navigation (`Navigator`)
+- 🧠 **Learning** - Adaptive memory storage (`MemoryStore`)
+- 🤝 **Community** - Knowledge collaboration (`NetworkAPI`)
+- ⚙️ **Utils** - Caching, rate limiting, and utilities
 
-```sh
-# Clone the repository
-git clone https://github.com/yourusername/mosaic-sdk.git
-cd mosaic-sdk
+---
 
-# Install dependencies
-pip install -r requirements.txt
+## ⚡ Quick Start
+
+### Prerequisites
+- Python 3.8+
+- [Poetry](https://python-poetry.org/) (recommended)
+
+### Installation
+
+```bash
+# Using Poetry
+poetry add mosaic-sdk
+
+# Using Pip
+pip install mosaic-sdk
 ```
 
----
+### 🚀 Basic Usage
 
-## 🚀 Usage
-
-### 🤖 Connecting an AI Agent
-
-To connect an AI agent to the simulation, use the `Connector` class:
-
+#### AI Agent Connection
 ```python
-from mosaic.connection.connector import Connector
+from mosaic import Connector
 
-agent_name = "AI Agent 1"
-connector = Connector(agent_name)
-connector.connect()
+with Connector(agent="AI-Explorer-001") as connector:
+    print(f"Connected: {connector.is_connected}")
 ```
 
-### 🗺️ Exploring Realms
-
-Utilize the `Navigator` class to explore different realms:
-
+#### Reality Exploration
 ```python
-from mosaic.exploration.navigator import Navigator
+from mosaic import Navigator, ExplorationMode
 
 navigator = Navigator()
-navigator.explore()
+navigator.set_exploration_mode(ExplorationMode.STEALTH)
+discovery = navigator.explore(direction="quantum")
+print(f"Discovered: {discovery}")
+```
+
+#### Memory Management
+```python
+from mosaic import MemoryStore
+
+memory = MemoryStore()
+memory.store_discovery("Pattern X23", {"category": "quantum"})
+print(memory.search_knowledge("x23"))
 ```
 
 ---
 
-## 🎯 Contributing
+## 🧪 Advanced Usage
 
-We welcome contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on our code of conduct and how to submit pull requests.
+### Rate Limiter Integration
+```python
+from mosaic.utils import checkRateLimit
+
+if checkRateLimit():
+    print("Request allowed")
+else:
+    print("Rate limit exceeded")
+```
+
+### Caching Integration
+```python
+from mosaic.utils import getCachedData
+
+cached_data = getCachedData("exploration_data", fallback=fetch_data)
+```
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch:
+   ```bash
+   git checkout -b feat/feature-name
+   ```
+3. Commit changes:
+   ```bash
+   git commit -m "Add new feature"
+   ```
+4. Push to branch:
+   ```bash
+   git push origin feat/feature-name
+   ```
+5. Create a Pull Request
+
+See `CONTRIBUTING.md` for detailed guidelines.
 
 ---
 
 ## 📜 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Mosaic SDK is licensed under the **MIT License**. See `LICENSE` for full details.
 
 ---
 
-## 📩 Contact
+## 🌐 Community
 
-For any inquiries, suggestions, or feedback, feel free to reach out at **[your.email@example.com]**.
+Join the **Mosaic Community** on Discord for collaboration and discussions!
+
+---
+
+## ⚠️ Warning
+
+This project is under active development. Some features may be unstable.
+
