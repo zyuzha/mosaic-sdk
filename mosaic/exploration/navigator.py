@@ -44,7 +44,7 @@ class Navigator:
         """
         if not start_location or not isinstance(start_location, str):
             raise ValueError("Start location must be a non-empty string")
-            
+        
         self.current_location = start_location
         self._visited_locations = {start_location: 1}
         self._exploration_mode = ExplorationMode.SAFE
@@ -60,11 +60,15 @@ class Navigator:
         Raises:
             ValueError: If invalid mode is provided
         """
-        if not isinstance(mode, ExplorationMode):
-            raise ValueError("Invalid exploration mode")
+        try:
+            if not isinstance(mode, ExplorationMode):
+                raise ValueError("Invalid exploration mode")
             
-        self._exploration_mode = mode
-        logger.info(f"Exploration mode set to {mode.name}")
+            self._exploration_mode = mode
+            logger.info(f"Exploration mode set to {mode.name}")
+        except ValueError as e:
+            logger.error(f"Failed to set exploration mode: {str(e)}")
+            raise
 
     def explore(self, direction: Optional[str] = None) -> str:
         """
@@ -80,7 +84,9 @@ class Navigator:
             NavigationError: If exploration fails
         """
         try:
-            # Simulated exploration logic
+            if direction and not isinstance(direction, str):
+                raise ValueError("Direction must be a string or None")
+            
             new_location = self._generate_new_location(direction)
             
             # Update location tracking
@@ -119,10 +125,13 @@ class Navigator:
         Returns:
             str: Generated location identifier
         """
-        # Replace with actual location generation logic
-        if direction:
-            return f"{direction.capitalize()} Realm"
-        return "New Realm"
+        try:
+            if direction:
+                return f"{direction.capitalize()} Realm"
+            return "New Realm"
+        except Exception as e:
+            logger.error(f"Failed to generate new location: {str(e)}")
+            raise NavigationError("Error in generating new location")
 
     def __repr__(self) -> str:
         """Official string representation of the Navigator"""
