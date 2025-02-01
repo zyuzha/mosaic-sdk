@@ -1,12 +1,21 @@
-from mosaic.exploration.navigator import Navigator
-from mosaic.learning.memory_store import MemoryStore
+from mosaic.exploration import Navigator, ExplorationMode, NavigationError
 
-def main():
-    navigator = Navigator()
-    memory_store = MemoryStore()
+# Initialize navigator
+navigator = Navigator()
 
-    navigator.explore()
-    memory_store.store_discovery(navigator.get_current_location())
+# Set exploration mode
+navigator.set_exploration_mode(ExplorationMode.STEALTH)
 
-if __name__ == "__main__":
-    main()
+# Explore new areas
+try:
+    print("Current location:", navigator.get_current_location())
+    
+    # Explore with direction
+    new_location = navigator.explore(direction="north")
+    print("New location:", new_location)
+    
+    # Get exploration history
+    print("Exploration history:", navigator.get_exploration_history())
+    
+except NavigationError as e:
+    print(f"Navigation error: {e}")

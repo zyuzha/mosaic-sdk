@@ -1,10 +1,8 @@
-from mosaic.connection.connector import Connector
+from mosaic.connection import Connector, ConnectionError
 
-def main():
-    agent_name = "AI Agent 1"
-    connector = Connector(agent_name)
-    
-    connector.connect()
-    
-if __name__ == "__main__":
-    main()
+try:
+    with Connector(agent="AI-Explorer-001") as connector:
+        print(f"Connected: {connector.is_connected}")
+        # Perform operations in the simulation
+except ConnectionError as e:
+    print(f"Connection failed: {e}")
