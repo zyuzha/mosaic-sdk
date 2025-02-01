@@ -1,1 +1,3 @@
-from .memory_store import MemoryStore
+from .memory_store import MemoryStore, MemoryError
+
+__all__ = ['MemoryStore', 'MemoryError']

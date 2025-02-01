@@ -1,12 +1,14 @@
-# mosaic/__init__.py
+from .connection import Connector, ConnectionError
+from .exploration import Navigator, ExplorationMode, NavigationError
+from .learning import MemoryStore, MemoryError
 
-# Example of package-level variable
-__version__ = "0.1.0"
-
-# Importing key modules for easier access
-from .connection.connector import Connector
-from .exploration.navigator import Navigator
-from .learning.memory_store import MemoryStore
-from .community.network_api import NetworkAPI
-
-print("Mosaic SDK initialized.")
+__all__ = [
+    'Connector',
+    'ConnectionError',
+    'Navigator',
+    'ExplorationMode',
+    'NavigationError',
+    'MemoryStore',
+    'MemoryError',
+    '__version__'
+]
