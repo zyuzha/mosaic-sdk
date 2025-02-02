@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 class NavigationError(Exception):
-    """Custom exception for navigation-related errors"""
+    """Custom exception for navigation-related errors."""
     pass
 
 
 class ExplorationMode(Enum):
-    """Enumeration of available exploration modes"""
+    """Enumeration of available exploration modes."""
     SAFE = auto()
     AGGRESSIVE = auto()
     STEALTH = auto()
@@ -27,38 +27,53 @@ class Navigator:
     A class to manage exploration in the Infinite Backrooms simulation.
     
     Attributes:
-        current_location (str): Current position in the simulation
-        _visited_locations (dict): History of visited locations
-        _exploration_mode (ExplorationMode): Current exploration strategy
+        MAX_ENERGY (int): Maximum energy level.
+        ENERGY_COST (int): Energy consumed per exploration.
+        RESTORE_ENERGY (int): Energy restored when resting.
+        current_location (str): The current location of the navigator.
+        _visited_locations (dict): A dictionary storing visited locations and their visit count.
+        _exploration_mode (ExplorationMode): The current exploration strategy.
+        _energy (int): The remaining energy level.
+        _exploration_map (dict): A dictionary tracking exploration paths.
     """
+    MAX_ENERGY = 100
+    ENERGY_COST = 10
+    RESTORE_ENERGY = 30
     
     def __init__(self, start_location: str = "Starting Point"):
         """
         Initialize the Navigator with a starting location.
         
         Args:
-            start_location: Initial location in the simulation
-            
-        Raises:
-            ValueError: If start_location is empty or invalid
-        """
-        if not start_location or not isinstance(start_location, str):
-            raise ValueError("Start location must be a non-empty string")
+            start_location (str): The initial location in the simulation.
         
-        self.current_location = start_location
-        self._visited_locations = {start_location: 1}
-        self._exploration_mode = ExplorationMode.SAFE
-        logger.info(f"Navigator initialized at {start_location}")
-
+        Raises:
+            ValueError: If start_location is not a valid string.
+        """
+        try:
+            if not start_location or not isinstance(start_location, str):
+                raise ValueError("Start location must be a non-empty string")
+            
+            self.current_location = start_location
+            self._visited_locations = {start_location: 1}
+            self._exploration_mode = ExplorationMode.SAFE
+            self._energy = self.MAX_ENERGY
+            self._exploration_map = {start_location: []}
+            
+            logger.info(f"Navigator initialized at {start_location}")
+        except ValueError as e:
+            logger.error(f"Initialization failed: {str(e)}")
+            raise
+    
     def set_exploration_mode(self, mode: ExplorationMode) -> None:
         """
         Set the exploration strategy.
         
         Args:
-            mode: Exploration mode from ExplorationMode enum
-            
+            mode (ExplorationMode): The exploration mode from the ExplorationMode enum.
+        
         Raises:
-            ValueError: If invalid mode is provided
+            ValueError: If an invalid mode is provided.
         """
         try:
             if not isinstance(mode, ExplorationMode):
@@ -69,61 +84,89 @@ class Navigator:
         except ValueError as e:
             logger.error(f"Failed to set exploration mode: {str(e)}")
             raise
-
+    
     def explore(self, direction: Optional[str] = None) -> str:
         """
         Explore new areas in the simulation.
         
         Args:
-            direction: Optional direction for exploration
-            
+            direction (str, optional): The direction for exploration.
+        
         Returns:
-            str: New location identifier
-            
+            str: The identifier of the new location.
+        
         Raises:
-            NavigationError: If exploration fails
+            NavigationError: If exploration fails due to lack of energy.
+            ValueError: If direction is not a valid string.
         """
         try:
+            if self._energy < self.ENERGY_COST:
+                raise NavigationError("Not enough energy to explore. Please rest.")
+            
             if direction and not isinstance(direction, str):
                 raise ValueError("Direction must be a string or None")
             
             new_location = self._generate_new_location(direction)
             
-            # Update location tracking
             self._visited_locations[new_location] = (
                 self._visited_locations.get(new_location, 0) + 1
             )
             self.current_location = new_location
+            self._energy -= self.ENERGY_COST
+            
+            # Update exploration map
+            if new_location not in self._exploration_map:
+                self._exploration_map[new_location] = []
+            self._exploration_map[self.current_location].append(new_location)
             
             logger.info(f"Explored to {new_location} in {self._exploration_mode.name} mode")
             return new_location
-            
-        except Exception as e:
+        except (NavigationError, ValueError) as e:
             logger.error(f"Exploration failed: {str(e)}")
-            raise NavigationError(f"Exploration failed: {str(e)}") from e
-
+            raise
+    
+    def rest(self):
+        """
+        Restore energy after resting.
+        """
+        try:
+            self._energy = min(self._energy + self.RESTORE_ENERGY, self.MAX_ENERGY)
+            logger.info(f"Rested and restored energy to {self._energy}")
+        except Exception as e:
+            logger.error(f"Failed to restore energy: {str(e)}")
+            raise
+    
     def get_current_location(self) -> str:
-        """Return the current location"""
+        """Return the current location."""
         return self.current_location
-
+    
     def get_exploration_history(self) -> Dict[str, int]:
         """
         Get the complete exploration history.
         
         Returns:
-            dict: Mapping of locations to visit counts
+            dict: A dictionary mapping locations to visit counts.
         """
         return self._visited_locations.copy()
-
+    
+    def get_exploration_map(self) -> Dict[str, list]:
+        """
+        Get the exploration map.
+        
+        Returns:
+            dict: A dictionary mapping locations to the list of connected locations.
+        """
+        return self._exploration_map.copy()
+    
     def _generate_new_location(self, direction: Optional[str]) -> str:
         """
         Generate a new location based on exploration parameters.
         
         Args:
-            direction: Optional direction for exploration
-            
+            direction (str, optional): The direction for exploration.
+        
         Returns:
-            str: Generated location identifier
+            str: The generated location identifier.
         """
         try:
             if direction:
@@ -132,9 +175,14 @@ class Navigator:
         except Exception as e:
             logger.error(f"Failed to generate new location: {str(e)}")
             raise NavigationError("Error in generating new location")
-
+    
+    def get_energy(self) -> int:
+        """Returns the current energy level."""
+        return self._energy
+    
     def __repr__(self) -> str:
-        """Official string representation of the Navigator"""
+        """Official string representation of the Navigator."""
         return (f"Navigator(current_location={self.current_location}, "
                 f"mode={self._exploration_mode.name}, "
+                f"energy={self._energy}, "
                 f"visited={len(self._visited_locations)} locations)")
