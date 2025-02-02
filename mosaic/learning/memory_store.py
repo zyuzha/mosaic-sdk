@@ -116,6 +116,44 @@ class MemoryStore:
         """Create truncated string representation of an object"""
         s = str(obj)
         return s[:max_len] + ('...' if len(s) > max_len else '')
+    
+    def remove_discovery(
+        self,
+        discovery: Optional[str] = None,
+        metadata_key: Optional[str] = None,
+        metadata_value: Optional[Any] = None
+    ) -> None:
+        """
+        Remove discoveries based on specific criteria.
+
+        Args:
+            discovery: The value of the discovery to remove.
+            metadata_key: The metadata key to match.
+            metadata_value: The metadata value to match.
+
+        Raises:
+            ValueError: If no valid criteria are provided.
+            MemoryError: If removal fails.
+        """
+        try:
+            if not discovery and not (metadata_key and metadata_value):
+                raise ValueError("Must provide either discovery or metadata key-value pair")
+
+            # Create a copy of the memory to avoid modifying it during iteration
+            memory_copy = self._memory.copy()
+
+            # Remove entries that match the criteria
+            for entry in memory_copy:
+                if (discovery and entry["discovery"] == discovery) or (
+                    metadata_key and metadata_value
+                    and entry["metadata"].get(metadata_key) == metadata_value
+                ):
+                    self._memory.remove(entry)
+                    logger.info(f"Removed discovery: {self._truncate_repr(entry['discovery'])}")
+
+        except Exception as e:
+            logger.error(f"Failed to remove discovery: {str(e)}")
+            raise MemoryError(f"Removal failed: {str(e)}") from e
 
     def __repr__(self) -> str:
         """Official string representation of the MemoryStore"""
