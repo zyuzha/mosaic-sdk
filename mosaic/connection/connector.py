@@ -110,3 +110,34 @@ class Connector:
     def __repr__(self) -> str:
         """Official string representation of the Connector"""
         return f"Connector(agent={self.agent}, connected={self._connected})"
+
+    def send_heartbeat(self) -> bool:
+        """
+        Send a heartbeat signal to verify the connection status.
+        
+        Returns:
+            bool: True if the connection is active and the heartbeat is successful.
+        
+        Raises:
+            ConnectionError: If the heartbeat cannot be sent because the connection is not active.
+        
+        Examples:
+            >>> connector = Connector("Agent007")
+            >>> connector.connect()
+            >>> connector.send_heartbeat()
+            True
+        """
+        if not self._connected:
+            logger.error(f"{self.agent}: Cannot send heartbeat. Not connected.")
+            raise ConnectionError("Cannot send heartbeat. Not connected.")
+
+        try:
+            # Simulate heartbeat logic. In a real scenario, replace this with actual ping logic.
+            logger.debug(f"{self.agent}: Sending heartbeat...")
+            
+            # Assuming heartbeat is always successful in this simulation.
+            logger.info(f"{self.agent}: Heartbeat successful")
+            return True
+        except Exception as e:
+            logger.error(f"{self.agent}: Heartbeat failed - {str(e)}")
+            raise ConnectionError(f"Heartbeat failed: {str(e)}") from e
