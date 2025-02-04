@@ -1,6 +1,7 @@
 import logging
 from typing import Any, List, Optional
 from datetime import datetime
+import json  # Added for JSON serialization/deserialization
 
 # Configure logging
 logging.basicConfig(
@@ -154,6 +155,57 @@ class MemoryStore:
         except Exception as e:
             logger.error(f"Failed to remove discovery: {str(e)}")
             raise MemoryError(f"Removal failed: {str(e)}") from e
+
+    def export_memory(self, filepath: str) -> None:
+        """
+        Export the current memory store to a JSON file.
+        
+        Args:
+            filepath: The path to the file where the memory store will be saved.
+        
+        Raises:
+            MemoryError: If exporting fails.
+        """
+        try:
+            with open(filepath, 'w') as f:
+                json.dump(self._memory, f, indent=4)
+            logger.info(f"Memory store exported to {filepath}")
+        except Exception as e:
+            logger.error(f"Failed to export memory: {str(e)}")
+            raise MemoryError(f"Export failed: {str(e)}") from e
+
+    def import_memory(self, filepath: str, merge: bool = False) -> None:
+        """
+        Import discoveries from a JSON file into the memory store.
+        
+        Args:
+            filepath: The path to the JSON file to import from.
+            merge: If True, merge the imported discoveries with the existing memory.
+                   If False, clear existing memory before importing.
+        
+        Raises:
+            MemoryError: If importing fails.
+        """
+        try:
+            with open(filepath, 'r') as f:
+                imported_data = json.load(f)
+            
+            if not isinstance(imported_data, list):
+                raise ValueError("Imported data must be a list of discovery entries")
+
+            if not merge:
+                self.clear_memory()
+            
+            # Ensure capacity is not exceeded when merging
+            for entry in imported_data:
+                if len(self._memory) >= self._max_size:
+                    self._handle_capacity_limit()
+                self._memory.append(entry)
+            
+            logger.info(f"Memory store imported from {filepath}")
+        except Exception as e:
+            logger.error(f"Failed to import memory: {str(e)}")
+            raise MemoryError(f"Import failed: {str(e)}") from e
 
     def __repr__(self) -> str:
         """Official string representation of the MemoryStore"""
