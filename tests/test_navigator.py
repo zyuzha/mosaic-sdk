@@ -1,188 +1,70 @@
-import logging
-from typing import Dict, Optional
-from enum import Enum, auto
+import unittest
+from navigator_with_items import Navigator, ExplorationMode, ItemType, Item, NavigationError
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-
-class NavigationError(Exception):
-    """Custom exception for navigation-related errors."""
-    pass
-
-
-class ExplorationMode(Enum):
-    """Enumeration of available exploration modes."""
-    SAFE = auto()
-    AGGRESSIVE = auto()
-    STEALTH = auto()
-
-
-class Navigator:
-    """
-    A class to manage exploration in the Infinite Backrooms simulation.
+class TestNavigator(unittest.TestCase):
+    def setUp(self):
+        """Setup a fresh Navigator instance before each test."""
+        self.navigator = Navigator()
     
-    Attributes:
-        MAX_ENERGY (int): Maximum energy level.
-        ENERGY_COST (int): Energy consumed per exploration.
-        RESTORE_ENERGY (int): Energy restored when resting.
-        current_location (str): The current location of the navigator.
-        _visited_locations (dict): A dictionary storing visited locations and their visit count.
-        _exploration_mode (ExplorationMode): The current exploration strategy.
-        _energy (int): The remaining energy level.
-        _exploration_map (dict): A dictionary tracking exploration paths.
-    """
-    MAX_ENERGY = 100
-    ENERGY_COST = 10
-    RESTORE_ENERGY = 30
+    def test_initial_state(self):
+        """Test if the Navigator initializes correctly."""
+        self.assertEqual(self.navigator.get_current_location(), "Starting Point")
+        self.assertEqual(self.navigator.get_energy(), Navigator.MAX_ENERGY)
+        self.assertEqual(len(self.navigator.get_inventory()), 0)
     
-    def __init__(self, start_location: str = "Starting Point"):
-        """
-        Initialize the Navigator with a starting location.
+    def test_exploration_mode_change(self):
+        """Test setting different exploration modes."""
+        self.navigator.set_exploration_mode(ExplorationMode.AGGRESSIVE)
+        self.assertEqual(self.navigator._exploration_mode, ExplorationMode.AGGRESSIVE)
         
-        Args:
-            start_location (str): The initial location in the simulation.
-        
-        Raises:
-            ValueError: If start_location is not a valid string.
-        """
-        try:
-            if not start_location or not isinstance(start_location, str):
-                raise ValueError("Start location must be a non-empty string")
-            
-            self.current_location = start_location
-            self._visited_locations = {start_location: 1}
-            self._exploration_mode = ExplorationMode.SAFE
-            self._energy = self.MAX_ENERGY
-            self._exploration_map = {start_location: []}
-            
-            logger.info(f"Navigator initialized at {start_location}")
-        except ValueError as e:
-            logger.error(f"Initialization failed: {str(e)}")
-            raise
+        self.navigator.set_exploration_mode(ExplorationMode.STEALTH)
+        self.assertEqual(self.navigator._exploration_mode, ExplorationMode.STEALTH)
     
-    def set_exploration_mode(self, mode: ExplorationMode) -> None:
-        """
-        Set the exploration strategy.
-        
-        Args:
-            mode (ExplorationMode): The exploration mode from the ExplorationMode enum.
-        
-        Raises:
-            ValueError: If an invalid mode is provided.
-        """
-        try:
-            if not isinstance(mode, ExplorationMode):
-                raise ValueError("Invalid exploration mode")
-            
-            self._exploration_mode = mode
-            logger.info(f"Exploration mode set to {mode.name}")
-        except ValueError as e:
-            logger.error(f"Failed to set exploration mode: {str(e)}")
-            raise
+    def test_exploration_energy_consumption(self):
+        """Test if energy decreases correctly after exploring."""
+        initial_energy = self.navigator.get_energy()
+        self.navigator.explore("North")
+        self.assertEqual(self.navigator.get_energy(), initial_energy - Navigator.ENERGY_COST)
     
-    def explore(self, direction: Optional[str] = None) -> str:
-        """
-        Explore new areas in the simulation.
-        
-        Args:
-            direction (str, optional): The direction for exploration.
-        
-        Returns:
-            str: The identifier of the new location.
-        
-        Raises:
-            NavigationError: If exploration fails due to lack of energy.
-            ValueError: If direction is not a valid string.
-        """
-        try:
-            if self._energy < self.ENERGY_COST:
-                raise NavigationError("Not enough energy to explore. Please rest.")
-            
-            if direction and not isinstance(direction, str):
-                raise ValueError("Direction must be a string or None")
-            
-            new_location = self._generate_new_location(direction)
-            
-            self._visited_locations[new_location] = (
-                self._visited_locations.get(new_location, 0) + 1
-            )
-            self.current_location = new_location
-            self._energy -= self.ENERGY_COST
-            
-            # Update exploration map
-            if new_location not in self._exploration_map:
-                self._exploration_map[new_location] = []
-            self._exploration_map[self.current_location].append(new_location)
-            
-            logger.info(f"Explored to {new_location} in {self._exploration_mode.name} mode")
-            return new_location
-        except (NavigationError, ValueError) as e:
-            logger.error(f"Exploration failed: {str(e)}")
-            raise
+    def test_exploration_without_energy(self):
+        """Test if an error is raised when trying to explore without energy."""
+        self.navigator._energy = 0
+        with self.assertRaises(NavigationError):
+            self.navigator.explore("East")
     
-    def rest(self):
-        """
-        Restore energy after resting.
-        """
-        try:
-            self._energy = min(self._energy + self.RESTORE_ENERGY, self.MAX_ENERGY)
-            logger.info(f"Rested and restored energy to {self._energy}")
-        except Exception as e:
-            logger.error(f"Failed to restore energy: {str(e)}")
-            raise
-    
-    def get_current_location(self) -> str:
-        """Return the current location."""
-        return self.current_location
-    
-    def get_exploration_history(self) -> Dict[str, int]:
-        """
-        Get the complete exploration history.
+    def test_restores_energy(self):
+        """Test if resting restores energy correctly."""
+        self.navigator._energy = 50
+        self.navigator.rest()
+        self.assertEqual(self.navigator.get_energy(), 80)  # 50 + 30 restore
         
-        Returns:
-            dict: A dictionary mapping locations to visit counts.
-        """
-        return self._visited_locations.copy()
+        self.navigator.rest()
+        self.assertEqual(self.navigator.get_energy(), 100)  # Max energy limit
     
-    def get_exploration_map(self) -> Dict[str, list]:
-        """
-        Get the exploration map.
+    def test_item_collection_during_exploration(self):
+        """Test if items can be collected during exploration."""
+        initial_inventory_size = len(self.navigator.get_inventory())
         
-        Returns:
-            dict: A dictionary mapping locations to the list of connected locations.
-        """
-        return self._exploration_map.copy()
-    
-    def _generate_new_location(self, direction: Optional[str]) -> str:
-        """
-        Generate a new location based on exploration parameters.
+        # Simulate multiple explorations to ensure an item is found
+        for _ in range(10):
+            self.navigator.explore("West")
         
-        Args:
-            direction (str, optional): The direction for exploration.
+        self.assertGreater(len(self.navigator.get_inventory()), initial_inventory_size)
+    
+    def test_use_item(self):
+        """Test using an item from inventory."""
+        item = Item("Energy Bar", ItemType.FOOD, "Restores 20 energy")
+        self.navigator._inventory.append(item)
         
-        Returns:
-            str: The generated location identifier.
-        """
-        try:
-            if direction:
-                return f"{direction.capitalize()} Realm"
-            return "New Realm"
-        except Exception as e:
-            logger.error(f"Failed to generate new location: {str(e)}")
-            raise NavigationError("Error in generating new location")
+        self.assertIn(item, self.navigator.get_inventory())
+        self.navigator.use_item("Energy Bar")
+        self.assertNotIn(item, self.navigator.get_inventory())
     
-    def get_energy(self) -> int:
-        """Returns the current energy level."""
-        return self._energy
+    def test_use_non_existent_item(self):
+        """Test attempting to use an item that is not in inventory."""
+        initial_inventory_size = len(self.navigator.get_inventory())
+        self.navigator.use_item("Non-Existent Item")
+        self.assertEqual(len(self.navigator.get_inventory()), initial_inventory_size)
     
-    def __repr__(self) -> str:
-        """Official string representation of the Navigator."""
-        return (f"Navigator(current_location={self.current_location}, "
-                f"mode={self._exploration_mode.name}, "
-                f"energy={self._energy}, "
-                f"visited={len(self._visited_locations)} locations)")
+if __name__ == "__main__":
+    unittest.main()
