@@ -1,6 +1,8 @@
 import logging
 from typing import Dict, Optional
 from enum import Enum, auto
+import random
+
 
 # Configure logging
 logging.basicConfig(
@@ -186,3 +188,39 @@ class Navigator:
                 f"mode={self._exploration_mode.name}, "
                 f"energy={self._energy}, "
                 f"visited={len(self._visited_locations)} locations)")
+    
+    def discard_item(self, item_name: str):
+        """
+        Remove an item from the inventory.
+
+        Args:
+            item_name (str): The name of the item to discard.
+
+        Raises:
+            ValueError: If the item is not found in the inventory.
+        """
+        for item in self._inventory:
+            if item.name.lower() == item_name.lower():
+                self._inventory.remove(item)
+                logger.info(f"Discarded item: {item.name}")
+                return
+        logger.warning(f"Item '{item_name}' not found in inventory.")
+        raise ValueError("Item not found in inventory.")
+    
+    def find_random_item(self):
+        """
+        Attempt to find a random item while exploring.
+
+        There is a 40% chance of finding an item.
+
+        Returns:
+            Optional[Item]: The found item, or None if no item is found.
+        """
+        if random.random() < 0.4:  # 40% chance to find an item
+            found_item = random.choice(self.POSSIBLE_ITEMS)
+            self._inventory.append(found_item)
+            logger.info(f"Found an item: {found_item.name}")
+            return found_item
+        logger.info("No item found this time.")
+        return None
+
