@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 class NetworkAPI:
     """A class to manage knowledge sharing within a community network.
     
@@ -55,22 +59,40 @@ class NetworkAPI:
         self._community_data.clear()
         print("Community data storage has been reset")
 
-    def search_knowledge(self, keyword: str) -> list[str]:
-        """Search for knowledge entries containing a keyword
+    def search_knowledge(self, query: str) -> Optional[str]:
+        """
+        Search for a knowledge entry in the community data.
         
         Args:
-            keyword (str): Search term (case-insensitive)
-            
+            query (str): The search query to find the knowledge entry.
+        
         Returns:
-            list[str]: Matching knowledge entries
-            
+            Optional[str]: The found knowledge entry or None if not found.
+        
         Raises:
-            TypeError: If keyword is not a string
+            TypeError: If the input query is not a string.
+        
+        Examples:
+            >>> api = NetworkAPI()
+            >>> api.search_knowledge("Learn Python")
+            'Learn Python'
         """
-        if not isinstance(keyword, str):
-            raise TypeError("Keyword must be a string")
-            
-        return [entry for entry in self._community_data if keyword.lower() in entry.lower()]
+        # Validate input type
+        if not isinstance(query, str):
+            logger.error("Search query must be a string")
+            raise TypeError("Search query must be a string")
+        
+        # Clean the search query
+        cleaned_query = query.strip()
+        
+        # Search for the knowledge entry
+        for knowledge in self._community_data:
+            if cleaned_query in knowledge:
+                logger.info(f"Knowledge entry found: '{knowledge}'")
+                return knowledge
+        
+        logger.info("Knowledge entry not found")
+        return None
     
     def update_knowledge(self, old_knowledge: str, new_knowledge: str) -> None:
         """Update an existing knowledge entry with new content.
