@@ -141,3 +141,18 @@ class Connector:
         except Exception as e:
             logger.error(f"{self.agent}: Heartbeat failed - {str(e)}")
             raise ConnectionError(f"Heartbeat failed: {str(e)}") from e
+
+    def reconnect(self):
+        """
+        Reconnect to the simulation environment.
+        
+        Raises:
+            ConnectionError: If the reconnection fails.
+        """
+        try:
+            self.disconnect()
+            self.connect()
+            logger.info(f"{self.agent} reconnected successfully.")
+        except ConnectionError as e:
+            logger.error(f"Failed to reconnect: {str(e)}")
+            raise ConnectionError(f"Reconnection failed: {str(e)}") from e
