@@ -170,6 +170,15 @@ class MemoryStore:
             with open(filepath, 'w') as f:
                 json.dump(self._memory, f, indent=4)
             logger.info(f"Memory store exported to {filepath}")
+        except FileNotFoundError as e:
+            logger.error(f"File not found: {str(e)}")
+            raise MemoryError(f"Export failed: File not found {str(e)}") from e
+        except IOError as e:
+            logger.error(f"I/O error: {str(e)}")
+            raise MemoryError(f"Export failed: I/O error {str(e)}") from e
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON decode error: {str(e)}")
+            raise MemoryError(f"Export failed: JSON decode error {str(e)}") from e
         except Exception as e:
             logger.error(f"Failed to export memory: {str(e)}")
             raise MemoryError(f"Export failed: {str(e)}") from e
