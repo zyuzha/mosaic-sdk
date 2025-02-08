@@ -7,7 +7,8 @@ import random
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,13 @@ class ExplorationMode(Enum):
     SAFE = auto()
     AGGRESSIVE = auto()
     STEALTH = auto()
+
+
+class Direction(Enum):
+    NORTH = auto()
+    SOUTH = auto()
+    EAST = auto()
+    WEST = auto()
 
 
 class Navigator:
@@ -224,3 +232,28 @@ class Navigator:
         logger.info("No item found this time.")
         return None
 
+    def navigate_to_random_location(self) -> None:
+        """
+        Navigate to a random location within the exploration environment.
+        """
+        self.current_location["x"] = random.randint(-100, 100)
+        self.current_location["y"] = random.randint(-100, 100)
+        logger.info(f"Navigated to random location: {self.current_location}")
+
+    def navigate(self, direction: Direction, steps: int) -> None:
+        """
+        Navigate in a specified direction by a certain number of steps.
+        
+        Args:
+            direction (Direction): The direction to navigate.
+            steps (int): The number of steps to take in the specified direction.
+        """
+        if direction == Direction.NORTH:
+            self.current_location["y"] += steps
+        elif direction == Direction.SOUTH:
+            self.current_location["y"] -= steps
+        elif direction == Direction.EAST:
+            self.current_location["x"] += steps
+        elif direction == Direction.WEST:
+            self.current_location["x"] -= steps
+        logger.info(f"Navigated {direction.name} by {steps} steps to {self.current_location}")
